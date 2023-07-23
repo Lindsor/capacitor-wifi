@@ -18,6 +18,7 @@ export interface WifiEntry {
   capabilities: WifiCapability[];
   ssid: string | SpecialSsid;
   level: number;
+  isCurrentWifi: boolean;
 }
 
 export interface ScanWifiResult {

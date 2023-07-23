@@ -57,12 +57,13 @@ getCurrentWifi() => Promise<GetCurrentWifiResult>
 
 #### WifiEntry
 
-| Prop               | Type                          |
-| ------------------ | ----------------------------- |
-| **`bssid`**        | <code>string</code>           |
-| **`capabilities`** | <code>WifiCapability[]</code> |
-| **`ssid`**         | <code>string</code>           |
-| **`level`**        | <code>number</code>           |
+| Prop                | Type                          |
+| ------------------- | ----------------------------- |
+| **`bssid`**         | <code>string</code>           |
+| **`capabilities`**  | <code>WifiCapability[]</code> |
+| **`ssid`**          | <code>string</code>           |
+| **`level`**         | <code>number</code>           |
+| **`isCurrentWifi`** | <code>boolean</code>          |
 
 
 #### GetCurrentWifiResult

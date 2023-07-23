@@ -1,28 +1,21 @@
 package com.lindsor.capacitor.wifi;
 
 import android.Manifest;
-import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Build;
 import androidx.core.app.ActivityCompat;
-import com.getcapacitor.JSArray;
-import com.getcapacitor.JSObject;
-import com.getcapacitor.PluginCall;
 import java.util.ArrayList;
 import java.util.List;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 public class Wifi {
 
     public static final String IS_WRAPPED_IN_QUOTES_PATTERN = "^\".*\"$";
 
-    private Context context;
+    private final Context context;
     private WifiManager wifiManager = null;
 
     public Wifi(Context context) {
@@ -31,8 +24,6 @@ public class Wifi {
 
     public ArrayList<WifiEntry> scanForWifi() {
         this.ensureWifiManager();
-
-        final JSObject result = new JSObject();
 
         if (
             ActivityCompat.checkSelfPermission(this.context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
@@ -45,12 +36,15 @@ public class Wifi {
             // to handle the case where the user grants the permission. See the documentation
             // for ActivityCompat#requestPermissions for more details.
             // TODO: Throw RequiresPermission error
-            return new ArrayList();
+            return new ArrayList<>();
         }
+
+        final WifiInfo currentWifiInfo = this.wifiManager.getConnectionInfo();
+        String currentWifiBssid = currentWifiInfo == null ? null : currentWifiInfo.getBSSID();
 
         final List<ScanResult> scanResults = this.wifiManager.getScanResults();
 
-        final ArrayList<WifiEntry> wifis = new ArrayList();
+        final ArrayList<WifiEntry> wifis = new ArrayList<>();
         for (int i = 0; i < scanResults.size(); i++) {
             final ScanResult scanResult = scanResults.get(i);
             WifiEntry wifiObject = new WifiEntry();
@@ -59,6 +53,7 @@ public class Wifi {
             wifiObject.level = scanResult.level;
             wifiObject.ssid = this.getScanResultSsid(scanResult);
             wifiObject.capabilities = this.getScanResultCapabilities(scanResult);
+            wifiObject.isCurrentWifi = wifiObject.bssid.equals(currentWifiBssid);
 
             wifis.add(wifiObject);
         }
@@ -66,27 +61,19 @@ public class Wifi {
         return wifis;
     }
 
-    public WifiEntry getWifiByBssid(String bssid) {
+    public WifiEntry getCurrentWifi() {
+        this.ensureWifiManager();
+
         ArrayList<WifiEntry> wifis = this.scanForWifi();
 
         for (int i = 0; i < wifis.size(); i++) {
             WifiEntry wifi = wifis.get(i);
-
-            if (bssid.equals(wifi.bssid)) {
+            if (wifi.isCurrentWifi) {
                 return wifi;
             }
         }
 
         return null;
-    }
-
-    public WifiEntry getCurrentWifi() {
-        this.ensureWifiManager();
-
-        WifiInfo wifiInfo = this.wifiManager.getConnectionInfo();
-
-        WifiEntry wifi = this.getWifiByBssid(wifiInfo.getBSSID());
-        return wifi;
     }
 
     private void ensureWifiManager() {
@@ -96,8 +83,7 @@ public class Wifi {
     }
 
     private String getScanResultSsid(ScanResult scanResult) {
-
-        String ssid = null;
+        String ssid;
 
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
             ssid = scanResult.SSID;
@@ -115,8 +101,7 @@ public class Wifi {
     }
 
     private ArrayList<String> getScanResultCapabilities(ScanResult scanResult) {
-
-        final ArrayList<String> capabilities = new ArrayList();
+        final ArrayList<String> capabilities = new ArrayList<>();
 
         if (scanResult.capabilities == null) {
             return capabilities;
@@ -124,8 +109,8 @@ public class Wifi {
 
         final String[] capabilitiesStrings = scanResult.capabilities.split("]\\[");
 
-        for (int i = 0; i < capabilitiesStrings.length; i++) {
-            String capabilityString = capabilitiesStrings[i];
+        for (String capabilitiesString : capabilitiesStrings) {
+            String capabilityString = capabilitiesString;
 
             if (capabilityString.startsWith("[")) {
                 capabilityString = capabilityString.substring(1, capabilityString.length() - 1);

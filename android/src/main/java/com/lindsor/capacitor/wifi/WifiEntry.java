@@ -1,13 +1,10 @@
 package com.lindsor.capacitor.wifi;
 
 import android.os.Build;
-
 import com.getcapacitor.JSArray;
 import com.getcapacitor.JSObject;
-
-import org.json.JSONException;
-
 import java.util.ArrayList;
+import org.json.JSONException;
 
 public class WifiEntry {
 
@@ -19,10 +16,13 @@ public class WifiEntry {
 
     public int level = -1;
 
+    public boolean isCurrentWifi = false;
+
     public JSObject toCapacitorResult() {
         JSObject result = new JSObject();
         result.put("bssid", this.bssid);
         result.put("level", this.level);
+        result.put("isCurrentWifi", this.isCurrentWifi);
 
         if ("".equals(this.ssid)) {
             result.put("ssid", HIDDEN_SSID);
