@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.wifi.ScanResult;
+import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Build;
 import androidx.core.app.ActivityCompat;
@@ -28,7 +29,7 @@ public class Wifi {
         this.context = context;
     }
 
-    public void scanForWifi(Context context, PluginCall call) {
+    public ArrayList<WifiEntry> scanForWifi() {
         this.ensureWifiManager();
 
         final JSObject result = new JSObject();
@@ -43,15 +44,13 @@ public class Wifi {
             //                                          int[] grantResults)
             // to handle the case where the user grants the permission. See the documentation
             // for ActivityCompat#requestPermissions for more details.
-            result.put("wasSuccess", false);
-            result.put("reason", "No permission");
-            call.resolve(result);
-            return;
+            // TODO: Throw RequiresPermission error
+            return new ArrayList();
         }
 
         final List<ScanResult> scanResults = this.wifiManager.getScanResults();
 
-        final JSArray wifis = new JSArray();
+        final ArrayList<WifiEntry> wifis = new ArrayList();
         for (int i = 0; i < scanResults.size(); i++) {
             final ScanResult scanResult = scanResults.get(i);
             WifiEntry wifiObject = new WifiEntry();
@@ -61,14 +60,33 @@ public class Wifi {
             wifiObject.ssid = this.getScanResultSsid(scanResult);
             wifiObject.capabilities = this.getScanResultCapabilities(scanResult);
 
-            try {
-                wifis.put(i, wifiObject.toCapacitorResult());
-            } catch (JSONException e) {}
+            wifis.add(wifiObject);
         }
 
-        result.put("wifis", wifis);
+        return wifis;
+    }
 
-        call.resolve(result);
+    public WifiEntry getWifiByBssid(String bssid) {
+        ArrayList<WifiEntry> wifis = this.scanForWifi();
+
+        for (int i = 0; i < wifis.size(); i++) {
+            WifiEntry wifi = wifis.get(i);
+
+            if (bssid.equals(wifi.bssid)) {
+                return wifi;
+            }
+        }
+
+        return null;
+    }
+
+    public WifiEntry getCurrentWifi() {
+        this.ensureWifiManager();
+
+        WifiInfo wifiInfo = this.wifiManager.getConnectionInfo();
+
+        WifiEntry wifi = this.getWifiByBssid(wifiInfo.getBSSID());
+        return wifi;
     }
 
     private void ensureWifiManager() {

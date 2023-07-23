@@ -14,6 +14,7 @@ npx cap sync
 <docgen-index>
 
 * [`scanWifi()`](#scanwifi)
+* [`getCurrentWifi()`](#getcurrentwifi)
 * [Interfaces](#interfaces)
 * [Enums](#enums)
 
@@ -29,6 +30,17 @@ scanWifi() => Promise<ScanWifiResult>
 ```
 
 **Returns:** <code>Promise&lt;<a href="#scanwifiresult">ScanWifiResult</a>&gt;</code>
+
+--------------------
+
+
+### getCurrentWifi()
+
+```typescript
+getCurrentWifi() => Promise<GetCurrentWifiResult>
+```
+
+**Returns:** <code>Promise&lt;<a href="#getcurrentwifiresult">GetCurrentWifiResult</a>&gt;</code>
 
 --------------------
 
@@ -51,6 +63,13 @@ scanWifi() => Promise<ScanWifiResult>
 | **`capabilities`** | <code>WifiCapability[]</code> |
 | **`ssid`**         | <code>string</code>           |
 | **`level`**        | <code>number</code>           |
+
+
+#### GetCurrentWifiResult
+
+| Prop              | Type                                            |
+| ----------------- | ----------------------------------------------- |
+| **`currentWifi`** | <code><a href="#wifientry">WifiEntry</a></code> |
 
 
 ### Enums

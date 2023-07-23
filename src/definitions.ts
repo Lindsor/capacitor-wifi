@@ -24,6 +24,11 @@ export interface ScanWifiResult {
   wifis: WifiEntry[];
 }
 
+export interface GetCurrentWifiResult {
+  currentWifi?: WifiEntry;
+}
+
 export interface WifiPlugin {
   scanWifi(): Promise<ScanWifiResult>;
+  getCurrentWifi(): Promise<GetCurrentWifiResult>;
 }
