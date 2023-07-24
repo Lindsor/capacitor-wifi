@@ -1,6 +1,6 @@
 {
   "name": "ln-capacitor-wifi",
-  "version": "0.0.2",
+  "version": "0.0.6",
   "description": "Connect to Wifi through your capacitor plugin. Good for IoT device connections.",
   "main": "dist/plugin.cjs.js",
   "module": "dist/esm/index.js",
@@ -11,7 +11,7 @@
     "android/build.gradle",
     "dist/",
     "ios/Plugin/",
-    "CapacitorWifi.podspec"
+    "LnCapacitorWifi.podspec"
   ],
   "author": "Marcelo Luz",
   "license": "MIT",

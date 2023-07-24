@@ -37,7 +37,26 @@ public class WifiPlugin extends Plugin {
             return;
         }
 
-        wifi.connectToWifiBySsidAndPassword(call, ssid, password);
+        ConnectToWifiCallback callback = new ConnectToWifiCallback() {
+            @Override
+            public void onConnected(WifiEntry wifiEntry) {
+                JSObject result = new JSObject();
+                result.put("wasSuccess", true);
+
+                if (wifiEntry != null) {
+                    result.put("wifi", wifiEntry.toCapacitorResult());
+                }
+
+                call.resolve(result);
+            }
+
+            @Override
+            public void onError(WifiError error) {
+                call.reject(error.toCapacitorRejectCode(), error.toCapacitorResult());
+            }
+        };
+
+        wifi.connectToWifiBySsid(ssid, password, callback);
     }
 
     @PluginMethod

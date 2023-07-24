@@ -91,9 +91,10 @@ connectToWifiBySsidAndPassword(connectToWifiRequest: ConnectToWifiRequest) => Pr
 
 #### ConnectToWifiResult
 
-| Prop             | Type              |
-| ---------------- | ----------------- |
-| **`wasSuccess`** | <code>true</code> |
+| Prop             | Type                                            |
+| ---------------- | ----------------------------------------------- |
+| **`wasSuccess`** | <code>true</code>                               |
+| **`wifi`**       | <code><a href="#wifientry">WifiEntry</a></code> |
 
 
 #### ConnectToWifiRequest

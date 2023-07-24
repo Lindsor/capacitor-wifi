@@ -31,6 +31,7 @@ export interface GetCurrentWifiResult {
 
 export interface ConnectToWifiResult {
   wasSuccess: true;
+  wifi?: WifiEntry;
 }
 
 export interface ConnectToWifiRequest {

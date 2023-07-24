@@ -13,9 +13,8 @@ import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.net.wifi.WifiNetworkSpecifier;
 import android.os.Build;
+import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
-import com.getcapacitor.JSObject;
-import com.getcapacitor.PluginCall;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,18 +27,19 @@ public class Wifi {
         this.context = context;
     }
 
-    public void connectToWifiBySsidAndPassword(PluginCall call, String ssid, String password) {
+    public void connectToWifiBySsid(String ssid, @Nullable String password, ConnectToWifiCallback connectedCallback) {
         this.ensureWifiManager();
 
         if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.Q) {
-            this.connectToWifiBySsidAndPasswordLegacy(call, ssid, password);
+            this.connectToWifiBySsidAndPasswordLegacy(ssid, password, connectedCallback);
             return;
         }
 
-        WifiNetworkSpecifier.Builder wifiNetworkSpecifier = new WifiNetworkSpecifier.Builder()
-            .setIsHiddenSsid(false)
-            .setSsid(ssid)
-            .setWpa2Passphrase(password);
+        WifiNetworkSpecifier.Builder wifiNetworkSpecifier = new WifiNetworkSpecifier.Builder().setIsHiddenSsid(false).setSsid(ssid);
+
+        if (password != null && !"".equals(password)) {
+            wifiNetworkSpecifier.setWpa2Passphrase(password);
+        }
 
         NetworkRequest networkRequest = new NetworkRequest.Builder()
             .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
@@ -56,9 +56,7 @@ public class Wifi {
                 // To make sure that requests don't go over mobile data
                 connectivityManager.bindProcessToNetwork(network);
 
-                JSObject result = new JSObject();
-                result.put("wasSuccess", true);
-                call.resolve(result);
+                connectedCallback.onConnected(getWifiBySsid(ssid));
             }
 
             @Override
@@ -66,7 +64,7 @@ public class Wifi {
                 super.onUnavailable();
 
                 WifiError error = new WifiError(WifiErrorCode.FAILED_TO_ENABLE_NETWORK);
-                call.reject(error.toCapacitorRejectCode(), error.toCapacitorResult());
+                connectedCallback.onError(error);
             }
         };
 
@@ -127,6 +125,21 @@ public class Wifi {
         return null;
     }
 
+    public WifiEntry getWifiBySsid(String ssid) {
+        this.ensureWifiManager();
+
+        ArrayList<WifiEntry> wifis = this.scanForWifi();
+
+        for (int i = 0; i < wifis.size(); i++) {
+            WifiEntry wifi = wifis.get(i);
+            if (wifi.ssid.equals(ssid)) {
+                return wifi;
+            }
+        }
+
+        return null;
+    }
+
     private void ensureWifiManager() {
         if (this.wifiManager == null) {
             this.wifiManager = (WifiManager) this.context.getSystemService(Context.WIFI_SERVICE);
@@ -179,7 +192,7 @@ public class Wifi {
 
     // TODO: Remove once no longer needed
     @SuppressWarnings("deprecation")
-    private void connectToWifiBySsidAndPasswordLegacy(PluginCall call, String ssid, String password) {
+    private void connectToWifiBySsidAndPasswordLegacy(String ssid, String password, ConnectToWifiCallback connectedCallback) {
         WifiConfiguration wifiConfig = new WifiConfiguration();
         wifiConfig.SSID = String.format("\"%s\"", ssid);
         wifiConfig.preSharedKey = password;
@@ -200,23 +213,21 @@ public class Wifi {
 
         if (netId == -1) {
             WifiError error = new WifiError(WifiErrorCode.COULD_NOT_ADD_OR_UPDATE_WIFI_SSID_CONFIG);
-            call.reject(error.toCapacitorRejectCode(), error.toCapacitorResult());
+            connectedCallback.onError(error);
             return;
         }
 
         if (!this.wifiManager.enableNetwork(netId, true)) {
             WifiError error = new WifiError(WifiErrorCode.FAILED_TO_ENABLE_NETWORK);
-            call.reject(error.toCapacitorRejectCode(), error.toCapacitorResult());
+            connectedCallback.onError(error);
             return;
         }
         if (!this.wifiManager.reconnect()) {
             WifiError error = new WifiError(WifiErrorCode.FAILED_TO_RECONNECT_NETWORK);
-            call.reject(error.toCapacitorRejectCode(), error.toCapacitorResult());
+            connectedCallback.onError(error);
             return;
         }
 
-        JSObject result = new JSObject();
-        result.put("wasSuccess", true);
-        call.resolve(result);
+        connectedCallback.onConnected(new WifiEntry());
     }
 }
