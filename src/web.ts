@@ -1,7 +1,6 @@
 import { WebPlugin } from '@capacitor/core';
 
 import type {
-  ConnectToWifiRequest,
   ConnectToWifiResult,
   GetCurrentWifiResult,
   ScanWifiResult,
@@ -18,9 +17,7 @@ export class WifiWeb extends WebPlugin implements WifiPlugin {
     throw this.unavailable(WifiErrorCode.METHOD_UNIMPLEMENTED);
   }
 
-  async connectToWifiBySsidAndPassword(
-    _request: ConnectToWifiRequest,
-  ): Promise<ConnectToWifiResult> {
+  async connectToWifiBySsidAndPassword(): Promise<ConnectToWifiResult> {
     throw this.unavailable(WifiErrorCode.METHOD_UNIMPLEMENTED);
   }
 }
