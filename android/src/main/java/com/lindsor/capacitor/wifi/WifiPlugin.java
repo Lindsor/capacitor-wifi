@@ -1,5 +1,7 @@
 package com.lindsor.capacitor.wifi;
 
+import android.util.Log;
+
 import com.getcapacitor.JSArray;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
@@ -28,12 +30,12 @@ public class WifiPlugin extends Plugin {
             try {
                 wifiList.put(i, wifis.get(i).toCapacitorResult());
             } catch (JSONException e) {
-                throw new RuntimeException(e);
+                Log.e("WIFI_LOGGER", e.getMessage());
             }
         }
 
         JSObject result = new JSObject();
-        result.put("wifis", result);
+        result.put("wifis", wifiList);
 
         call.resolve(result);
     }
