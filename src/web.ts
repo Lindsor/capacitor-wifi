@@ -1,21 +1,26 @@
 import { WebPlugin } from '@capacitor/core';
 
 import type {
+  ConnectToWifiRequest,
+  ConnectToWifiResult,
   GetCurrentWifiResult,
   ScanWifiResult,
   WifiPlugin,
 } from './definitions';
+import { WifiErrorCode } from './definitions';
 
 export class WifiWeb extends WebPlugin implements WifiPlugin {
   async scanWifi(): Promise<ScanWifiResult> {
-    return {
-      wifis: [],
-    };
+    throw this.unavailable(WifiErrorCode.METHOD_UNIMPLEMENTED);
   }
 
   async getCurrentWifi(): Promise<GetCurrentWifiResult> {
-    return {
-      currentWifi: undefined,
-    };
+    throw this.unavailable(WifiErrorCode.METHOD_UNIMPLEMENTED);
+  }
+
+  async connectToWifiBySsidAndPassword(
+    _request: ConnectToWifiRequest,
+  ): Promise<ConnectToWifiResult> {
+    throw this.unavailable(WifiErrorCode.METHOD_UNIMPLEMENTED);
   }
 }

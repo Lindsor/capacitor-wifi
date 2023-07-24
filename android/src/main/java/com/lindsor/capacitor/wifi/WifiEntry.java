@@ -1,6 +1,5 @@
 package com.lindsor.capacitor.wifi;
 
-import android.os.Build;
 import com.getcapacitor.JSArray;
 import com.getcapacitor.JSObject;
 import java.util.ArrayList;

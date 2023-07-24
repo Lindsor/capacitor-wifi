@@ -1,7 +1,6 @@
 package com.lindsor.capacitor.wifi;
 
 import android.util.Log;
-
 import com.getcapacitor.JSArray;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
@@ -19,6 +18,26 @@ public class WifiPlugin extends Plugin {
     @Override
     public void load() {
         this.wifi = new Wifi(getContext());
+    }
+
+    @PluginMethod
+    public void connectToWifiBySsidAndPassword(PluginCall call) {
+        String ssid = call.getString("ssid");
+        String password = call.getString("password");
+
+        if (ssid == null || "".equals(ssid)) {
+            WifiError error = new WifiError(WifiErrorCode.MISSING_SSID_CONNECT_WIFI);
+            call.reject(error.code.name(), error.toCapacitorResult());
+            return;
+        }
+
+        if (password == null || "".equals(password)) {
+            WifiError error = new WifiError(WifiErrorCode.MISSING_PASSWORD_CONNECT_WIFI);
+            call.reject(error.code.name(), error.toCapacitorResult());
+            return;
+        }
+
+        wifi.connectToWifiBySsidAndPassword(call, ssid, password);
     }
 
     @PluginMethod

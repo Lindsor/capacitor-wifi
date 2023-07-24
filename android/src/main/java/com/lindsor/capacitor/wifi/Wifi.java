@@ -3,23 +3,74 @@ package com.lindsor.capacitor.wifi;
 import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.net.ConnectivityManager;
+import android.net.Network;
+import android.net.NetworkCapabilities;
+import android.net.NetworkRequest;
 import android.net.wifi.ScanResult;
+import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
+import android.net.wifi.WifiNetworkSpecifier;
 import android.os.Build;
 import androidx.core.app.ActivityCompat;
+import com.getcapacitor.JSObject;
+import com.getcapacitor.PluginCall;
 import java.util.ArrayList;
 import java.util.List;
 
 public class Wifi {
-
-    public static final String IS_WRAPPED_IN_QUOTES_PATTERN = "^\".*\"$";
 
     private final Context context;
     private WifiManager wifiManager = null;
 
     public Wifi(Context context) {
         this.context = context;
+    }
+
+    public void connectToWifiBySsidAndPassword(PluginCall call, String ssid, String password) {
+        this.ensureWifiManager();
+
+        if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.Q) {
+            this.connectToWifiBySsidAndPasswordLegacy(call, ssid, password);
+            return;
+        }
+
+        WifiNetworkSpecifier.Builder wifiNetworkSpecifier = new WifiNetworkSpecifier.Builder()
+            .setIsHiddenSsid(false)
+            .setSsid(ssid)
+            .setWpa2Passphrase(password);
+
+        NetworkRequest networkRequest = new NetworkRequest.Builder()
+            .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
+            .setNetworkSpecifier(wifiNetworkSpecifier.build())
+            .build();
+
+        ConnectivityManager connectivityManager = (ConnectivityManager) this.context.getSystemService(Context.CONNECTIVITY_SERVICE);
+
+        ConnectivityManager.NetworkCallback callback = new ConnectivityManager.NetworkCallback() {
+            @Override
+            public void onAvailable(Network network) {
+                super.onAvailable(network);
+
+                // To make sure that requests don't go over mobile data
+                connectivityManager.bindProcessToNetwork(network);
+
+                JSObject result = new JSObject();
+                result.put("wasSuccess", true);
+                call.resolve(result);
+            }
+
+            @Override
+            public void onUnavailable() {
+                super.onUnavailable();
+
+                WifiError error = new WifiError(WifiErrorCode.FAILED_TO_ENABLE_NETWORK);
+                call.reject(error.toCapacitorRejectCode(), error.toCapacitorResult());
+            }
+        };
+
+        connectivityManager.requestNetwork(networkRequest, callback);
     }
 
     public ArrayList<WifiEntry> scanForWifi() {
@@ -92,8 +143,8 @@ public class Wifi {
 
             // Unwrap the SSID as new Android spec always returns it wrapped
             // ie: SSID = Hello World, returns as SSID = "Hello World"
-            if (Boolean.TRUE.equals(ssid.matches(IS_WRAPPED_IN_QUOTES_PATTERN))) {
-                ssid = ssid.substring(1, ssid.length() - 2);
+            if (Boolean.TRUE.equals(ssid.startsWith("\"")) && Boolean.TRUE.equals(ssid.endsWith("\""))) {
+                ssid = ssid.substring(1, ssid.length() - 1);
             }
         }
 
@@ -113,16 +164,59 @@ public class Wifi {
             String capabilityString = capabilitiesString;
 
             if (capabilityString.startsWith("[")) {
-                capabilityString = capabilityString.substring(1, capabilityString.length() - 1);
+                capabilityString = capabilityString.substring(1);
             }
 
             if (capabilityString.endsWith("]")) {
-                capabilityString = capabilityString.substring(0, capabilityString.length() - 2);
+                capabilityString = capabilityString.substring(0, capabilityString.length() - 1);
             }
 
             capabilities.add(capabilityString);
         }
 
         return capabilities;
+    }
+
+    // TODO: Remove once no longer needed
+    @SuppressWarnings("deprecation")
+    private void connectToWifiBySsidAndPasswordLegacy(PluginCall call, String ssid, String password) {
+        WifiConfiguration wifiConfig = new WifiConfiguration();
+        wifiConfig.SSID = String.format("\"%s\"", ssid);
+        wifiConfig.preSharedKey = password;
+
+        wifiConfig.allowedProtocols.set(WifiConfiguration.Protocol.RSN);
+        wifiConfig.allowedProtocols.set(WifiConfiguration.Protocol.WPA);
+        wifiConfig.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.WPA_PSK);
+
+        wifiConfig.status = WifiConfiguration.Status.ENABLED;
+
+        wifiConfig.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.TKIP);
+        wifiConfig.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.CCMP);
+
+        wifiConfig.allowedPairwiseCiphers.set(WifiConfiguration.PairwiseCipher.TKIP);
+        wifiConfig.allowedPairwiseCiphers.set(WifiConfiguration.PairwiseCipher.CCMP);
+
+        int netId = this.wifiManager.addNetwork(wifiConfig);
+
+        if (netId == -1) {
+            WifiError error = new WifiError(WifiErrorCode.COULD_NOT_ADD_OR_UPDATE_WIFI_SSID_CONFIG);
+            call.reject(error.toCapacitorRejectCode(), error.toCapacitorResult());
+            return;
+        }
+
+        if (!this.wifiManager.enableNetwork(netId, true)) {
+            WifiError error = new WifiError(WifiErrorCode.FAILED_TO_ENABLE_NETWORK);
+            call.reject(error.toCapacitorRejectCode(), error.toCapacitorResult());
+            return;
+        }
+        if (!this.wifiManager.reconnect()) {
+            WifiError error = new WifiError(WifiErrorCode.FAILED_TO_RECONNECT_NETWORK);
+            call.reject(error.toCapacitorRejectCode(), error.toCapacitorResult());
+            return;
+        }
+
+        JSObject result = new JSObject();
+        result.put("wasSuccess", true);
+        call.resolve(result);
     }
 }

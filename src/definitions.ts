@@ -29,7 +29,32 @@ export interface GetCurrentWifiResult {
   currentWifi?: WifiEntry;
 }
 
+export interface ConnectToWifiResult {
+  wasSuccess: true;
+}
+
+export interface ConnectToWifiRequest {
+  ssid: string;
+  password: string;
+}
+
+export enum WifiErrorCode {
+  COULD_NOT_ADD_OR_UPDATE_WIFI_SSID_CONFIG = 'COULD_NOT_ADD_OR_UPDATE_WIFI_SSID_CONFIG',
+  FAILED_TO_ENABLE_NETWORK = 'FAILED_TO_ENABLE_NETWORK',
+  FAILED_TO_RECONNECT_NETWORK = 'FAILED_TO_RECONNECT_NETWORK',
+  MISSING_SSID_CONNECT_WIFI = 'MISSING_SSID_CONNECT_WIFI',
+  MISSING_PASSWORD_CONNECT_WIFI = 'MISSING_PASSWORD_CONNECT_WIFI',
+  METHOD_UNIMPLEMENTED = 'METHOD_UNIMPLEMENTED',
+}
+
+export interface WifiError {
+  code: WifiErrorCode;
+}
+
 export interface WifiPlugin {
   scanWifi(): Promise<ScanWifiResult>;
   getCurrentWifi(): Promise<GetCurrentWifiResult>;
+  connectToWifiBySsidAndPassword(
+    connectToWifiRequest: ConnectToWifiRequest,
+  ): Promise<ConnectToWifiResult>;
 }

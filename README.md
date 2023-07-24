@@ -15,6 +15,7 @@ npx cap sync
 
 * [`scanWifi()`](#scanwifi)
 * [`getCurrentWifi()`](#getcurrentwifi)
+* [`connectToWifiBySsidAndPassword(...)`](#connecttowifibyssidandpassword)
 * [Interfaces](#interfaces)
 * [Enums](#enums)
 
@@ -45,6 +46,21 @@ getCurrentWifi() => Promise<GetCurrentWifiResult>
 --------------------
 
 
+### connectToWifiBySsidAndPassword(...)
+
+```typescript
+connectToWifiBySsidAndPassword(connectToWifiRequest: ConnectToWifiRequest) => Promise<ConnectToWifiResult>
+```
+
+| Param                      | Type                                                                  |
+| -------------------------- | --------------------------------------------------------------------- |
+| **`connectToWifiRequest`** | <code><a href="#connecttowifirequest">ConnectToWifiRequest</a></code> |
+
+**Returns:** <code>Promise&lt;<a href="#connecttowifiresult">ConnectToWifiResult</a>&gt;</code>
+
+--------------------
+
+
 ### Interfaces
 
 
@@ -71,6 +87,21 @@ getCurrentWifi() => Promise<GetCurrentWifiResult>
 | Prop              | Type                                            |
 | ----------------- | ----------------------------------------------- |
 | **`currentWifi`** | <code><a href="#wifientry">WifiEntry</a></code> |
+
+
+#### ConnectToWifiResult
+
+| Prop             | Type              |
+| ---------------- | ----------------- |
+| **`wasSuccess`** | <code>true</code> |
+
+
+#### ConnectToWifiRequest
+
+| Prop           | Type                |
+| -------------- | ------------------- |
+| **`ssid`**     | <code>string</code> |
+| **`password`** | <code>string</code> |
 
 
 ### Enums
