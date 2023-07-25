@@ -31,12 +31,6 @@ public class WifiPlugin extends Plugin {
             return;
         }
 
-        if (password == null || "".equals(password)) {
-            WifiError error = new WifiError(WifiErrorCode.MISSING_PASSWORD_CONNECT_WIFI);
-            call.reject(error.code.name(), error.toCapacitorResult());
-            return;
-        }
-
         ConnectToWifiCallback callback = new ConnectToWifiCallback() {
             @Override
             public void onConnected(WifiEntry wifiEntry) {
