@@ -1,6 +1,6 @@
 {
   "name": "ln-capacitor-wifi",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "Connect to Wifi through your capacitor plugin. Good for IoT device connections.",
   "main": "dist/plugin.cjs.js",
   "module": "dist/esm/index.js",

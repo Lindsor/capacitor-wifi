@@ -36,7 +36,7 @@ export interface ConnectToWifiResult {
 
 export interface ConnectToWifiRequest {
   ssid: string;
-  password: string;
+  password?: string;
 }
 
 export enum WifiErrorCode {
