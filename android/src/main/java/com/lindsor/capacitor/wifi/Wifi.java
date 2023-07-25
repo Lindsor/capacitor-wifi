@@ -1,7 +1,11 @@
 package com.lindsor.capacitor.wifi;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.net.Network;
@@ -56,7 +60,20 @@ public class Wifi {
                 // To make sure that requests don't go over mobile data
                 connectivityManager.bindProcessToNetwork(network);
 
-                connectedCallback.onConnected(getWifiBySsid(ssid));
+                getWifiBySsid(
+                    ssid,
+                    new GetWifiCallback() {
+                        @Override
+                        public void onSuccess(@Nullable WifiEntry wifiEntry) {
+                            connectedCallback.onConnected(wifiEntry);
+                        }
+
+                        @Override
+                        public void onError(WifiError error) {
+                            connectedCallback.onConnected(null);
+                        }
+                    }
+                );
             }
 
             @Override
@@ -71,7 +88,11 @@ public class Wifi {
         connectivityManager.requestNetwork(networkRequest, callback);
     }
 
-    public ArrayList<WifiEntry> scanForWifi() {
+    /**
+     * TODO: Implement scan only 4 times every minute as per android 9 docs:
+     * <a href="https://developer.android.com/guide/topics/connectivity/wifi-scan">Restrictions</a>
+     */
+    public void scanForWifi(ScanWifiCallback callback) {
         this.ensureWifiManager();
 
         if (
@@ -85,59 +106,95 @@ public class Wifi {
             // to handle the case where the user grants the permission. See the documentation
             // for ActivityCompat#requestPermissions for more details.
             // TODO: Throw RequiresPermission error
-            return new ArrayList<>();
+            return;
         }
 
-        final WifiInfo currentWifiInfo = this.wifiManager.getConnectionInfo();
-        String currentWifiBssid = currentWifiInfo == null ? null : currentWifiInfo.getBSSID();
+        BroadcastReceiver wifiScanReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                boolean isSuccess = intent.getBooleanExtra(WifiManager.EXTRA_RESULTS_UPDATED, false);
 
-        final List<ScanResult> scanResults = this.wifiManager.getScanResults();
+                if (!isSuccess) {
+                    callback.onSuccess(getWifiScanCachedResults());
+                    return;
+                }
 
-        final ArrayList<WifiEntry> wifis = new ArrayList<>();
-        for (int i = 0; i < scanResults.size(); i++) {
-            final ScanResult scanResult = scanResults.get(i);
-            WifiEntry wifiObject = new WifiEntry();
+                ArrayList<WifiEntry> wifis = getWifiScanCachedResults();
 
-            wifiObject.bssid = scanResult.BSSID;
-            wifiObject.level = scanResult.level;
-            wifiObject.ssid = this.getScanResultSsid(scanResult);
-            wifiObject.capabilities = this.getScanResultCapabilities(scanResult);
-            wifiObject.isCurrentWifi = wifiObject.bssid.equals(currentWifiBssid);
+                callback.onSuccess(wifis);
+            }
+        };
 
-            wifis.add(wifiObject);
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION);
+        this.context.registerReceiver(wifiScanReceiver, intentFilter);
+
+        if (wifiManager.startScan()) {
+            return;
         }
 
-        return wifis;
+        callback.onSuccess(this.getWifiScanCachedResults());
     }
 
-    public WifiEntry getCurrentWifi() {
+    public void getCurrentWifi(GetWifiCallback callback) {
         this.ensureWifiManager();
 
-        ArrayList<WifiEntry> wifis = this.scanForWifi();
+        this.scanForWifi(
+                new ScanWifiCallback() {
+                    @Override
+                    public void onSuccess(@Nullable ArrayList<WifiEntry> wifis) {
+                        if (wifis == null) {
+                            callback.onSuccess(null);
+                            return;
+                        }
 
-        for (int i = 0; i < wifis.size(); i++) {
-            WifiEntry wifi = wifis.get(i);
-            if (wifi.isCurrentWifi) {
-                return wifi;
-            }
-        }
+                        for (int i = 0; i < wifis.size(); i++) {
+                            WifiEntry wifi = wifis.get(i);
+                            if (wifi.isCurrentWifi) {
+                                callback.onSuccess(wifi);
+                                return;
+                            }
+                        }
 
-        return null;
+                        callback.onSuccess(null);
+                    }
+
+                    @Override
+                    public void onError(WifiError error) {
+                        callback.onSuccess(null);
+                    }
+                }
+            );
     }
 
-    public WifiEntry getWifiBySsid(String ssid) {
+    public void getWifiBySsid(String ssid, GetWifiCallback callback) {
         this.ensureWifiManager();
+        this.scanForWifi(
+                new ScanWifiCallback() {
+                    @Override
+                    public void onSuccess(@Nullable ArrayList<WifiEntry> wifis) {
+                        if (wifis == null) {
+                            callback.onSuccess(null);
+                            return;
+                        }
 
-        ArrayList<WifiEntry> wifis = this.scanForWifi();
+                        for (int i = 0; i < wifis.size(); i++) {
+                            WifiEntry wifi = wifis.get(i);
+                            if (wifi.ssid.equals(ssid)) {
+                                callback.onSuccess(wifi);
+                                return;
+                            }
+                        }
 
-        for (int i = 0; i < wifis.size(); i++) {
-            WifiEntry wifi = wifis.get(i);
-            if (wifi.ssid.equals(ssid)) {
-                return wifi;
-            }
-        }
+                        callback.onSuccess(null);
+                    }
 
-        return null;
+                    @Override
+                    public void onError(WifiError error) {
+                        callback.onSuccess(null);
+                    }
+                }
+            );
     }
 
     private void ensureWifiManager() {
@@ -229,5 +286,30 @@ public class Wifi {
         }
 
         connectedCallback.onConnected(new WifiEntry());
+    }
+
+    private ArrayList<WifiEntry> getWifiScanCachedResults() {
+        final WifiInfo currentWifiInfo = wifiManager.getConnectionInfo();
+        String currentWifiBssid = currentWifiInfo == null ? null : currentWifiInfo.getBSSID();
+
+        // Permission requested above.
+        @SuppressLint("MissingPermission")
+        final List<ScanResult> scanResults = wifiManager.getScanResults();
+
+        final ArrayList<WifiEntry> wifis = new ArrayList<>();
+        for (int i = 0; i < scanResults.size(); i++) {
+            final ScanResult scanResult = scanResults.get(i);
+            WifiEntry wifiObject = new WifiEntry();
+
+            wifiObject.bssid = scanResult.BSSID;
+            wifiObject.level = scanResult.level;
+            wifiObject.ssid = getScanResultSsid(scanResult);
+            wifiObject.capabilities = getScanResultCapabilities(scanResult);
+            wifiObject.isCurrentWifi = wifiObject.bssid.equals(currentWifiBssid);
+
+            wifis.add(wifiObject);
+        }
+
+        return wifis;
     }
 }

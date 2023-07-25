@@ -1,6 +1,7 @@
 package com.lindsor.capacitor.wifi;
 
 import android.util.Log;
+import androidx.annotation.Nullable;
 import com.getcapacitor.JSArray;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
@@ -55,34 +56,57 @@ public class WifiPlugin extends Plugin {
 
     @PluginMethod
     public void scanWifi(PluginCall call) {
-        ArrayList<WifiEntry> wifis = wifi.scanForWifi();
+        wifi.scanForWifi(
+            new ScanWifiCallback() {
+                @Override
+                public void onSuccess(@Nullable ArrayList<WifiEntry> wifis) {
+                    JSArray wifiList = new JSArray();
+                    for (int i = 0; i < wifis.size(); i++) {
+                        try {
+                            wifiList.put(i, wifis.get(i).toCapacitorResult());
+                        } catch (JSONException e) {
+                            Log.e("WIFI_LOGGER", e.getMessage());
+                        }
+                    }
 
-        JSArray wifiList = new JSArray();
-        for (int i = 0; i < wifis.size(); i++) {
-            try {
-                wifiList.put(i, wifis.get(i).toCapacitorResult());
-            } catch (JSONException e) {
-                Log.e("WIFI_LOGGER", e.getMessage());
+                    JSObject result = new JSObject();
+                    result.put("wifis", wifiList);
+                    call.resolve(result);
+                }
+
+                @Override
+                public void onError(WifiError error) {
+                    JSObject result = new JSObject();
+                    result.put("wifis", null);
+                    call.resolve(result);
+                }
             }
-        }
-
-        JSObject result = new JSObject();
-        result.put("wifis", wifiList);
-
-        call.resolve(result);
+        );
     }
 
     @PluginMethod
     public void getCurrentWifi(PluginCall call) {
-        JSObject result = new JSObject();
-        WifiEntry currentWifi = this.wifi.getCurrentWifi();
+        this.wifi.getCurrentWifi(
+                new GetWifiCallback() {
+                    @Override
+                    public void onSuccess(@Nullable WifiEntry wifiEntry) {
+                        JSObject result = new JSObject();
+                        if (wifiEntry == null) {
+                            result.put("currentWifi", null);
+                        } else {
+                            result.put("currentWifi", wifiEntry.toCapacitorResult());
+                        }
 
-        if (currentWifi == null) {
-            result.put("currentWifi", null);
-        } else {
-            result.put("currentWifi", currentWifi.toCapacitorResult());
-        }
+                        call.resolve(result);
+                    }
 
-        call.resolve(result);
+                    @Override
+                    public void onError(WifiError error) {
+                        JSObject result = new JSObject();
+                        result.put("currentWifi", null);
+                        call.resolve(result);
+                    }
+                }
+            );
     }
 }
