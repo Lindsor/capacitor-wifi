@@ -167,6 +167,19 @@ public class Wifi {
             );
     }
 
+    public WifiEntry getCurrentWifiCached() {
+        ArrayList<WifiEntry> wifis = this.getWifiScanCachedResults();
+
+        for (int i = 0; i < wifis.size(); i++) {
+            WifiEntry wifi = wifis.get(i);
+            if (wifi.isCurrentWifi) {
+                return wifi;
+            }
+        }
+
+        return null;
+    }
+
     public void getWifiBySsid(String ssid, GetWifiCallback callback) {
         this.ensureWifiManager();
         this.scanForWifi(
@@ -195,6 +208,31 @@ public class Wifi {
                     }
                 }
             );
+    }
+
+    public ArrayList<WifiEntry> getWifiScanCachedResults() {
+        final WifiInfo currentWifiInfo = wifiManager.getConnectionInfo();
+        String currentWifiBssid = currentWifiInfo == null ? null : currentWifiInfo.getBSSID();
+
+        // Permission requested above.
+        @SuppressLint("MissingPermission")
+        final List<ScanResult> scanResults = wifiManager.getScanResults();
+
+        final ArrayList<WifiEntry> wifis = new ArrayList<>();
+        for (int i = 0; i < scanResults.size(); i++) {
+            final ScanResult scanResult = scanResults.get(i);
+            WifiEntry wifiObject = new WifiEntry();
+
+            wifiObject.bssid = scanResult.BSSID;
+            wifiObject.level = scanResult.level;
+            wifiObject.ssid = getScanResultSsid(scanResult);
+            wifiObject.capabilities = getScanResultCapabilities(scanResult);
+            wifiObject.isCurrentWifi = wifiObject.bssid.equals(currentWifiBssid);
+
+            wifis.add(wifiObject);
+        }
+
+        return wifis;
     }
 
     private void ensureWifiManager() {
@@ -286,30 +324,5 @@ public class Wifi {
         }
 
         connectedCallback.onConnected(new WifiEntry());
-    }
-
-    private ArrayList<WifiEntry> getWifiScanCachedResults() {
-        final WifiInfo currentWifiInfo = wifiManager.getConnectionInfo();
-        String currentWifiBssid = currentWifiInfo == null ? null : currentWifiInfo.getBSSID();
-
-        // Permission requested above.
-        @SuppressLint("MissingPermission")
-        final List<ScanResult> scanResults = wifiManager.getScanResults();
-
-        final ArrayList<WifiEntry> wifis = new ArrayList<>();
-        for (int i = 0; i < scanResults.size(); i++) {
-            final ScanResult scanResult = scanResults.get(i);
-            WifiEntry wifiObject = new WifiEntry();
-
-            wifiObject.bssid = scanResult.BSSID;
-            wifiObject.level = scanResult.level;
-            wifiObject.ssid = getScanResultSsid(scanResult);
-            wifiObject.capabilities = getScanResultCapabilities(scanResult);
-            wifiObject.isCurrentWifi = wifiObject.bssid.equals(currentWifiBssid);
-
-            wifis.add(wifiObject);
-        }
-
-        return wifis;
     }
 }

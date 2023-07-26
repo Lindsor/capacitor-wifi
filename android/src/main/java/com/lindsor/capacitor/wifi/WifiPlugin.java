@@ -86,27 +86,8 @@ public class WifiPlugin extends Plugin {
 
     @PluginMethod
     public void getCurrentWifi(PluginCall call) {
-        this.wifi.getCurrentWifi(
-                new GetWifiCallback() {
-                    @Override
-                    public void onSuccess(@Nullable WifiEntry wifiEntry) {
-                        JSObject result = new JSObject();
-                        if (wifiEntry == null) {
-                            result.put("currentWifi", null);
-                        } else {
-                            result.put("currentWifi", wifiEntry.toCapacitorResult());
-                        }
-
-                        call.resolve(result);
-                    }
-
-                    @Override
-                    public void onError(WifiError error) {
-                        JSObject result = new JSObject();
-                        result.put("currentWifi", null);
-                        call.resolve(result);
-                    }
-                }
-            );
+        JSObject result = new JSObject();
+        result.put("currentWifi", this.wifi.getCurrentWifiCached());
+        call.resolve(result);
     }
 }
