@@ -211,12 +211,14 @@ public class Wifi {
     }
 
     public ArrayList<WifiEntry> getWifiScanCachedResults() {
-        final WifiInfo currentWifiInfo = wifiManager.getConnectionInfo();
+        this.ensureWifiManager();
+
+        final WifiInfo currentWifiInfo = this.wifiManager.getConnectionInfo();
         String currentWifiBssid = currentWifiInfo == null ? null : currentWifiInfo.getBSSID();
 
         // Permission requested above.
         @SuppressLint("MissingPermission")
-        final List<ScanResult> scanResults = wifiManager.getScanResults();
+        final List<ScanResult> scanResults = this.wifiManager.getScanResults();
 
         final ArrayList<WifiEntry> wifis = new ArrayList<>();
         for (int i = 0; i < scanResults.size(); i++) {
@@ -288,6 +290,8 @@ public class Wifi {
     // TODO: Remove once no longer needed
     @SuppressWarnings("deprecation")
     private void connectToWifiBySsidAndPasswordLegacy(String ssid, String password, ConnectToWifiCallback connectedCallback) {
+        this.ensureWifiManager();
+
         WifiConfiguration wifiConfig = new WifiConfiguration();
         wifiConfig.SSID = String.format("\"%s\"", ssid);
         wifiConfig.preSharedKey = password;

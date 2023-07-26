@@ -1,3 +1,5 @@
+import type { PermissionState } from '@capacitor/core';
+
 export enum WifiCapability {
   WPA2_PSK_CCM = 'WPA2-PSK-CCM',
   RSN_PSK_CCMP = 'RSN-PSK-CCMP',
@@ -52,10 +54,18 @@ export interface WifiError {
   code: WifiErrorCode;
 }
 
+export interface PermissionStatus {
+  LOCATION: PermissionState;
+  NETWORK: PermissionState;
+}
+
 export interface WifiPlugin {
   scanWifi(): Promise<ScanWifiResult>;
   getCurrentWifi(): Promise<GetCurrentWifiResult>;
   connectToWifiBySsidAndPassword(
     connectToWifiRequest: ConnectToWifiRequest,
   ): Promise<ConnectToWifiResult>;
+
+  checkPermissions(): Promise<PermissionStatus>;
+  requestPermissions(): Promise<PermissionStatus>;
 }

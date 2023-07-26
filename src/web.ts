@@ -5,6 +5,7 @@ import type {
   GetCurrentWifiResult,
   ScanWifiResult,
   WifiPlugin,
+  PermissionStatus,
 } from './definitions';
 import { WifiErrorCode } from './definitions';
 
@@ -18,6 +19,14 @@ export class WifiWeb extends WebPlugin implements WifiPlugin {
   }
 
   async connectToWifiBySsidAndPassword(): Promise<ConnectToWifiResult> {
+    throw this.unavailable(WifiErrorCode.METHOD_UNIMPLEMENTED);
+  }
+
+  async requestPermissions(): Promise<PermissionStatus> {
+    throw this.unavailable(WifiErrorCode.METHOD_UNIMPLEMENTED);
+  }
+
+  async checkPermissions(): Promise<PermissionStatus> {
     throw this.unavailable(WifiErrorCode.METHOD_UNIMPLEMENTED);
   }
 }

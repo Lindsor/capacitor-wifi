@@ -16,7 +16,10 @@ npx cap sync
 * [`scanWifi()`](#scanwifi)
 * [`getCurrentWifi()`](#getcurrentwifi)
 * [`connectToWifiBySsidAndPassword(...)`](#connecttowifibyssidandpassword)
+* [`checkPermissions()`](#checkpermissions)
+* [`requestPermissions()`](#requestpermissions)
 * [Interfaces](#interfaces)
+* [Type Aliases](#type-aliases)
 * [Enums](#enums)
 
 </docgen-index>
@@ -57,6 +60,28 @@ connectToWifiBySsidAndPassword(connectToWifiRequest: ConnectToWifiRequest) => Pr
 | **`connectToWifiRequest`** | <code><a href="#connecttowifirequest">ConnectToWifiRequest</a></code> |
 
 **Returns:** <code>Promise&lt;<a href="#connecttowifiresult">ConnectToWifiResult</a>&gt;</code>
+
+--------------------
+
+
+### checkPermissions()
+
+```typescript
+checkPermissions() => Promise<PermissionStatus>
+```
+
+**Returns:** <code>Promise&lt;<a href="#permissionstatus">PermissionStatus</a>&gt;</code>
+
+--------------------
+
+
+### requestPermissions()
+
+```typescript
+requestPermissions() => Promise<PermissionStatus>
+```
+
+**Returns:** <code>Promise&lt;<a href="#permissionstatus">PermissionStatus</a>&gt;</code>
 
 --------------------
 
@@ -103,6 +128,22 @@ connectToWifiBySsidAndPassword(connectToWifiRequest: ConnectToWifiRequest) => Pr
 | -------------- | ------------------- |
 | **`ssid`**     | <code>string</code> |
 | **`password`** | <code>string</code> |
+
+
+#### PermissionStatus
+
+| Prop           | Type                                                        |
+| -------------- | ----------------------------------------------------------- |
+| **`LOCATION`** | <code><a href="#permissionstate">PermissionState</a></code> |
+| **`NETWORK`**  | <code><a href="#permissionstate">PermissionState</a></code> |
+
+
+### Type Aliases
+
+
+#### PermissionState
+
+<code>'prompt' | 'prompt-with-rationale' | 'granted' | 'denied'</code>
 
 
 ### Enums
