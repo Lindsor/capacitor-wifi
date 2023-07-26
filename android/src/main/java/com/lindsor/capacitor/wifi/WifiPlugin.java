@@ -87,7 +87,13 @@ public class WifiPlugin extends Plugin {
     @PluginMethod
     public void getCurrentWifi(PluginCall call) {
         JSObject result = new JSObject();
-        result.put("currentWifi", this.wifi.getCurrentWifiCached());
+        WifiEntry wifi = this.wifi.getCurrentWifiCached();
+
+        if (wifi == null) {
+            result.put("currentWifi", null);
+        } else {
+            result.put("currentWifi", wifi.toCapacitorResult());
+        }
         call.resolve(result);
     }
 }
