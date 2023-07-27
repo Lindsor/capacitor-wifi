@@ -111,6 +111,37 @@ public class WifiPlugin: CAPPlugin, CLLocationManagerDelegate {
     }
 
     @objc func getCurrentWifi(_ call: CAPPluginCall) {
-        call.resolve(["currentWifi": ""])
+        let wifiEntry: WifiEntry? = getCurrentWifiInfo()
+        
+        if (wifiEntry == nil) {
+            call.resolve(["currentWifi": ""])
+        } else {
+            call.resolve([
+                "currentWifi": [
+                    "bssid": wifiEntry?.bssid ?? "",
+                    "ssid": wifiEntry?.ssid ?? "[HIDDEN_SSID]",
+                    "isCurrentWifi": wifiEntry?.isCurrentWify ?? false,
+                    "level": -1,
+                    "capabilities": [String](),
+                ] as [String : Any]
+            ])
+        }
+        
+    }
+    
+    func getCurrentWifiInfo() -> WifiEntry? {
+        if let interfaces = CNCopySupportedInterfaces() as NSArray? {
+            for interface in interfaces {
+                if let interfaceInfo = CNCopyCurrentNetworkInfo(interface as! CFString) as NSDictionary? {
+                    let wifiEntry: WifiEntry = WifiEntry(
+                        bssid: interfaceInfo[kCNNetworkInfoKeyBSSID as String] as? String ?? "",
+                        ssid: interfaceInfo[kCNNetworkInfoKeySSID as String] as? String ?? "[HIDDEN_SSID]",
+                        isCurrentWify: true
+                    )
+                    return wifiEntry
+                }
+            }
+        }
+        return nil
     }
 }
