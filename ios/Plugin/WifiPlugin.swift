@@ -82,24 +82,26 @@ public class WifiPlugin: CAPPlugin, CLLocationManagerDelegate {
     }
 
     @objc func scanWifi(_ call: CAPPluginCall) {
-        if let interfaces: NSArray = CNCopySupportedInterfaces() {
-            var wifis = [WifiEntry]()
-
-            for interface in interfaces {
-                let interfaceName = interface as! String
-
-                if let dict = CNCopyCurrentNetworkInfo(interfaceName as CFString) as NSDictionary? {
-                    let networkInfo = WifiEntry(
-                        bssid: dict[kCNNetworkInfoKeyBSSID as String] as? String ?? "",
-                        ssid: dict[kCNNetworkInfoKeySSID as String] as? String ?? "[HIDDEN_SSID]",
-                        level: -1,
-                        isCurrentWify: false,
-                        capabilities: [String]()
-                    )
-                    wifis.append(networkInfo)
-                }
+        if _: NSArray = CNCopySupportedInterfaces() {
+            
+            let currentWifi: WifiEntry? = getCurrentWifiInfo()
+            
+            if (currentWifi == nil) {
+                call.resolve([
+                    "wifis": [] as Array<String>
+                ])
+                return;
             }
 
+            var wifis: Array<Dictionary<String, Any>> = []
+            let currentWifiDictionary: Dictionary<String, Any> = [
+                "bssid": currentWifi?.bssid ?? "",
+                "ssid": currentWifi?.ssid ?? "[HIDDEN_SSID]",
+                "isCurrentWifi": currentWifi?.isCurrentWify ?? false,
+                "level": -1,
+                "capabilities": [String](),
+            ]
+            wifis.append(currentWifiDictionary)
             call.resolve([
                 "wifis": wifis
             ] as PluginCallResultData)
