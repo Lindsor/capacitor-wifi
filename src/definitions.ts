@@ -41,6 +41,11 @@ export interface ConnectToWifiRequest {
   password?: string;
 }
 
+export interface ConnectToWifiPrefixRequest {
+  ssidPrefix: string;
+  password?: string;
+}
+
 export enum WifiErrorCode {
   COULD_NOT_ADD_OR_UPDATE_WIFI_SSID_CONFIG = 'COULD_NOT_ADD_OR_UPDATE_WIFI_SSID_CONFIG',
   FAILED_TO_ENABLE_NETWORK = 'FAILED_TO_ENABLE_NETWORK',
@@ -64,6 +69,9 @@ export interface WifiPlugin {
   getCurrentWifi(): Promise<GetCurrentWifiResult>;
   connectToWifiBySsidAndPassword(
     connectToWifiRequest: ConnectToWifiRequest,
+  ): Promise<ConnectToWifiResult>;
+  connectToWifiBySsidPrefixAndPassword(
+    connectToWifiPrefixRequest: ConnectToWifiPrefixRequest,
   ): Promise<ConnectToWifiResult>;
 
   checkPermissions(): Promise<PermissionStatus>;

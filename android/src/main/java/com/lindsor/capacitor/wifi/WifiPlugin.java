@@ -80,6 +80,45 @@ public class WifiPlugin extends Plugin {
 
     @PluginMethod
     @PermissionCallback
+    public void connectToWifiBySsidPrefixAndPassword(PluginCall call) {
+        if (!hasRequiredPermissions()) {
+            requestAllPermissions(call, "connectToWifiBySsidPrefixAndPassword");
+            return;
+        }
+
+        String ssidPrefix = call.getString("ssidPrefix");
+        String password = call.getString("password");
+
+        if (ssidPrefix == null || "".equals(ssidPrefix)) {
+            WifiError error = new WifiError(WifiErrorCode.MISSING_SSID_CONNECT_WIFI);
+            call.reject(error.code.name(), error.toCapacitorResult());
+            return;
+        }
+
+        ConnectToWifiCallback callback = new ConnectToWifiCallback() {
+            @Override
+            public void onConnected(WifiEntry wifiEntry) {
+                JSObject result = new JSObject();
+                result.put("wasSuccess", true);
+
+                if (wifiEntry != null) {
+                    result.put("wifi", wifiEntry.toCapacitorResult());
+                }
+
+                call.resolve(result);
+            }
+
+            @Override
+            public void onError(WifiError error) {
+                call.reject(error.toCapacitorRejectCode(), error.toCapacitorResult());
+            }
+        };
+
+        wifi.connectToWifiBySsidPrefix(ssidPrefix, password, callback);
+    }
+
+    @PluginMethod
+    @PermissionCallback
     public void scanWifi(PluginCall call) {
         if (!hasRequiredPermissions()) {
             requestAllPermissions(call, "scanWifi");

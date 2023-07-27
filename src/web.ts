@@ -22,6 +22,10 @@ export class WifiWeb extends WebPlugin implements WifiPlugin {
     throw this.unavailable(WifiErrorCode.METHOD_UNIMPLEMENTED);
   }
 
+  async connectToWifiBySsidPrefixAndPassword(): Promise<ConnectToWifiResult> {
+    throw this.unavailable(WifiErrorCode.METHOD_UNIMPLEMENTED);
+  }
+
   async requestPermissions(): Promise<PermissionStatus> {
     throw this.unavailable(WifiErrorCode.METHOD_UNIMPLEMENTED);
   }

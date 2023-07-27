@@ -16,6 +16,7 @@ npx cap sync
 * [`scanWifi()`](#scanwifi)
 * [`getCurrentWifi()`](#getcurrentwifi)
 * [`connectToWifiBySsidAndPassword(...)`](#connecttowifibyssidandpassword)
+* [`connectToWifiBySsidPrefixAndPassword(...)`](#connecttowifibyssidprefixandpassword)
 * [`checkPermissions()`](#checkpermissions)
 * [`requestPermissions()`](#requestpermissions)
 * [Interfaces](#interfaces)
@@ -58,6 +59,21 @@ connectToWifiBySsidAndPassword(connectToWifiRequest: ConnectToWifiRequest) => Pr
 | Param                      | Type                                                                  |
 | -------------------------- | --------------------------------------------------------------------- |
 | **`connectToWifiRequest`** | <code><a href="#connecttowifirequest">ConnectToWifiRequest</a></code> |
+
+**Returns:** <code>Promise&lt;<a href="#connecttowifiresult">ConnectToWifiResult</a>&gt;</code>
+
+--------------------
+
+
+### connectToWifiBySsidPrefixAndPassword(...)
+
+```typescript
+connectToWifiBySsidPrefixAndPassword(connectToWifiPrefixRequest: ConnectToWifiPrefixRequest) => Promise<ConnectToWifiResult>
+```
+
+| Param                            | Type                                                                              |
+| -------------------------------- | --------------------------------------------------------------------------------- |
+| **`connectToWifiPrefixRequest`** | <code><a href="#connecttowifiprefixrequest">ConnectToWifiPrefixRequest</a></code> |
 
 **Returns:** <code>Promise&lt;<a href="#connecttowifiresult">ConnectToWifiResult</a>&gt;</code>
 
@@ -128,6 +144,14 @@ requestPermissions() => Promise<PermissionStatus>
 | -------------- | ------------------- |
 | **`ssid`**     | <code>string</code> |
 | **`password`** | <code>string</code> |
+
+
+#### ConnectToWifiPrefixRequest
+
+| Prop             | Type                |
+| ---------------- | ------------------- |
+| **`ssidPrefix`** | <code>string</code> |
+| **`password`**   | <code>string</code> |
 
 
 #### PermissionStatus

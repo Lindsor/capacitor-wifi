@@ -88,6 +88,41 @@ public class Wifi {
         connectivityManager.requestNetwork(networkRequest, callback);
     }
 
+    public void connectToWifiBySsidPrefix(String ssidPrefix, @Nullable String password, ConnectToWifiCallback connectedCallback) {
+        this.ensureWifiManager();
+
+        this.scanForWifi(
+                new ScanWifiCallback() {
+                    @Override
+                    public void onSuccess(@Nullable ArrayList<WifiEntry> wifis) {
+                        if (wifis == null) {
+                            WifiError error = new WifiError(WifiErrorCode.FAILED_TO_ENABLE_NETWORK);
+                            connectedCallback.onError(error);
+                            return;
+                        }
+
+                        for (int i = 0; i < wifis.size(); i++) {
+                            WifiEntry wifi = wifis.get(i);
+                            if (wifi.ssid.startsWith(ssidPrefix)) {
+                                connectToWifiBySsid(wifi.ssid, password, connectedCallback);
+                                return;
+                            }
+                        }
+
+                        WifiError error = new WifiError(WifiErrorCode.FAILED_TO_ENABLE_NETWORK);
+                        connectedCallback.onError(error);
+                        return;
+                    }
+
+                    @Override
+                    public void onError(WifiError error) {
+                        connectedCallback.onError(error);
+                        return;
+                    }
+                }
+            );
+    }
+
     /**
      * TODO: Implement scan only 4 times every minute as per android 9 docs:
      * <a href="https://developer.android.com/guide/topics/connectivity/wifi-scan">Restrictions</a>
