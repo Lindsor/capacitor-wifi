@@ -2,6 +2,7 @@ import Foundation
 import Capacitor
 import SystemConfiguration.CaptiveNetwork
 import CoreLocation
+import NetworkExtension
 
 struct WifiEntry {
     var bssid: String
@@ -73,16 +74,56 @@ public class WifiPlugin: CAPPlugin, CLLocationManagerDelegate {
             "NETWORK": "granted"
         ])
     }
+    
+    @objc func connectToWifiBySsidPrefixAndPassword(_ call: CAPPluginCall) {
+        let ssidPrefix: String = call.getString("ssidPrefix", "")
+        let _: String? = call.getString("password")
+        
+        print("CONNECTING", ssidPrefix)
+        
+        let hotspotConfig = NEHotspotConfiguration(
+            ssidPrefix: ssidPrefix
+        )
+        
+        hotspotConfig.joinOnce = true
+        
+        NEHotspotConfigurationManager.shared.apply(hotspotConfig) { (error) in
+            if let error = error {
+                print("error = ", error)
+            } else {
+                print("Success!")
+            }
+            
+            let currentWifi: WifiEntry? = self.getCurrentWifiInfo()
+            
+            
+            call.resolve([
+                "wasSuccess": true,
+                "wifi": self.wifiEntryToWifiDict(wifiEntry: currentWifi) as Any
+            ])
+        }
+    }
 
     @objc func connectToWifiBySsidAndPassword(_ call: CAPPluginCall) {
-        let value = call.getString("value") ?? ""
-        call.resolve([
-            "value": wifi.echo(value)
-        ])
+        let hotspotConfig = NEHotspotConfiguration(
+            ssid: call.getString("ssid", ""),
+            passphrase: call.getString("password", ""),
+            isWEP: false
+        )
+        
+        NEHotspotConfigurationManager.shared.apply(hotspotConfig) { (error) in
+            if let error = error {
+                print("error = ", error)
+            } else {
+                print("Success!")
+            }
+            
+            call.resolve(["wasSuccess": true])
+        }
     }
 
     @objc func scanWifi(_ call: CAPPluginCall) {
-        if _: NSArray = CNCopySupportedInterfaces() {
+        if let _: NSArray = CNCopySupportedInterfaces() {
             
             let currentWifi: WifiEntry? = getCurrentWifiInfo()
             
@@ -94,13 +135,7 @@ public class WifiPlugin: CAPPlugin, CLLocationManagerDelegate {
             }
 
             var wifis: Array<Dictionary<String, Any>> = []
-            let currentWifiDictionary: Dictionary<String, Any> = [
-                "bssid": currentWifi?.bssid ?? "",
-                "ssid": currentWifi?.ssid ?? "[HIDDEN_SSID]",
-                "isCurrentWifi": currentWifi?.isCurrentWify ?? false,
-                "level": -1,
-                "capabilities": [String](),
-            ]
+            let currentWifiDictionary: [String: Any] = wifiEntryToWifiDict(wifiEntry: currentWifi)!
             wifis.append(currentWifiDictionary)
             call.resolve([
                 "wifis": wifis
@@ -119,13 +154,7 @@ public class WifiPlugin: CAPPlugin, CLLocationManagerDelegate {
             call.resolve(["currentWifi": ""])
         } else {
             call.resolve([
-                "currentWifi": [
-                    "bssid": wifiEntry?.bssid ?? "",
-                    "ssid": wifiEntry?.ssid ?? "[HIDDEN_SSID]",
-                    "isCurrentWifi": wifiEntry?.isCurrentWify ?? false,
-                    "level": -1,
-                    "capabilities": [String](),
-                ] as [String : Any]
+                "currentWifi": wifiEntryToWifiDict(wifiEntry: wifiEntry) as Any
             ])
         }
         
@@ -145,5 +174,19 @@ public class WifiPlugin: CAPPlugin, CLLocationManagerDelegate {
             }
         }
         return nil
+    }
+    
+    func wifiEntryToWifiDict(wifiEntry: WifiEntry?) -> [String: Any]? {
+        if (wifiEntry == nil) {
+            return nil
+        }
+        
+        return [
+            "bssid": wifiEntry?.bssid ?? "",
+            "ssid": wifiEntry?.ssid ?? "[HIDDEN_SSID]",
+            "isCurrentWifi": wifiEntry?.isCurrentWify ?? false,
+            "level": -1,
+            "capabilities": [String](),
+        ] as [String: Any]
     }
 }
