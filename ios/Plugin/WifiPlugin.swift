@@ -85,7 +85,7 @@ public class WifiPlugin: CAPPlugin, CLLocationManagerDelegate {
             ssidPrefix: ssidPrefix
         )
         
-        hotspotConfig.joinOnce = true
+        hotspotConfig.joinOnce = false
         
         NEHotspotConfigurationManager.shared.apply(hotspotConfig) { (error) in
             if let error = error {
