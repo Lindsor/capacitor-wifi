@@ -17,15 +17,21 @@ import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.net.wifi.WifiNetworkSpecifier;
 import android.os.Build;
+
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class Wifi {
 
     private final Context context;
     private WifiManager wifiManager = null;
+
+    private ConnectivityManager connectivityManager = null;
+    private ConnectivityManager.NetworkCallback connectivityCallback = null;
 
     public Wifi(Context context) {
         this.context = context;
@@ -50,13 +56,13 @@ public class Wifi {
             .setNetworkSpecifier(wifiNetworkSpecifier.build())
             .build();
 
-        ConnectivityManager connectivityManager = (ConnectivityManager) this.context.getSystemService(Context.CONNECTIVITY_SERVICE);
-
-        ConnectivityManager.NetworkCallback callback = new ConnectivityManager.NetworkCallback() {
+        if (this.connectivityCallback != null) {
+          this.connectivityManager.unregisterNetworkCallback(this.connectivityCallback);
+        }
+        this.connectivityCallback = new ConnectivityManager.NetworkCallback() {
             @Override
-            public void onAvailable(Network network) {
+            public void onAvailable(@NonNull Network network) {
                 super.onAvailable(network);
-
                 // To make sure that requests don't go over mobile data
                 connectivityManager.bindProcessToNetwork(network);
 
@@ -85,7 +91,21 @@ public class Wifi {
             }
         };
 
-        connectivityManager.requestNetwork(networkRequest, callback);
+        this.connectivityManager.requestNetwork(networkRequest, this.connectivityCallback);
+    }
+
+    public void disconnectAndForget() {
+
+      this.ensureWifiManager();
+
+      if (this.connectivityCallback != null) {
+        this.connectivityManager.unregisterNetworkCallback(this.connectivityCallback);
+        this.connectivityCallback = null;
+      }
+
+      if (this.connectivityManager != null) {
+        this.connectivityManager.bindProcessToNetwork(null);
+      }
     }
 
     public void connectToWifiBySsidPrefix(String ssidPrefix, @Nullable String password, ConnectToWifiCallback connectedCallback) {
@@ -111,13 +131,11 @@ public class Wifi {
 
                         WifiError error = new WifiError(WifiErrorCode.FAILED_TO_ENABLE_NETWORK);
                         connectedCallback.onError(error);
-                        return;
                     }
 
                     @Override
                     public void onError(WifiError error) {
                         connectedCallback.onError(error);
-                        return;
                     }
                 }
             );
@@ -276,6 +294,10 @@ public class Wifi {
         if (this.wifiManager == null) {
             this.wifiManager = (WifiManager) this.context.getSystemService(Context.WIFI_SERVICE);
         }
+
+        if (this.connectivityManager == null) {
+            this.connectivityManager = (ConnectivityManager) this.context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        }
     }
 
     private String getScanResultSsid(ScanResult scanResult) {
@@ -284,7 +306,7 @@ public class Wifi {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
             ssid = scanResult.SSID;
         } else {
-            ssid = scanResult.getWifiSsid().toString();
+            ssid = Objects.requireNonNull(scanResult.getWifiSsid()).toString();
 
             // Unwrap the SSID as new Android spec always returns it wrapped
             // ie: SSID = Hello World, returns as SSID = "Hello World"

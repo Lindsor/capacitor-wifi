@@ -33,4 +33,8 @@ export class WifiWeb extends WebPlugin implements WifiPlugin {
   async checkPermissions(): Promise<PermissionStatus> {
     throw this.unavailable(WifiErrorCode.METHOD_UNIMPLEMENTED);
   }
+
+  async disconnectAndForget(): Promise<void> {
+    throw this.unavailable(WifiErrorCode.METHOD_UNIMPLEMENTED);
+  }
 }

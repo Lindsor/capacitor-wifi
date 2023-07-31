@@ -178,4 +178,18 @@ public class WifiPlugin extends Plugin {
         }
         call.resolve(result);
     }
+
+    @PluginMethod
+    @PermissionCallback
+    public void disconnectAndForget(PluginCall call) {
+        if (!hasRequiredPermissions()) {
+            requestAllPermissions(call, "disconnectAndForget");
+            return;
+        }
+
+        JSObject result = new JSObject();
+        this.wifi.disconnectAndForget();
+        result.put("wasSuccess", true);
+        call.resolve(result);
+    }
 }

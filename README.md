@@ -19,6 +19,7 @@ npx cap sync
 * [`connectToWifiBySsidPrefixAndPassword(...)`](#connecttowifibyssidprefixandpassword)
 * [`checkPermissions()`](#checkpermissions)
 * [`requestPermissions()`](#requestpermissions)
+* [`disconnectAndForget()`](#disconnectandforget)
 * [Interfaces](#interfaces)
 * [Type Aliases](#type-aliases)
 * [Enums](#enums)
@@ -98,6 +99,15 @@ requestPermissions() => Promise<PermissionStatus>
 ```
 
 **Returns:** <code>Promise&lt;<a href="#permissionstatus">PermissionStatus</a>&gt;</code>
+
+--------------------
+
+
+### disconnectAndForget()
+
+```typescript
+disconnectAndForget() => Promise<void>
+```
 
 --------------------
 
