@@ -74,29 +74,29 @@ public class WifiPlugin: CAPPlugin, CLLocationManagerDelegate {
             "NETWORK": "granted"
         ])
     }
-    
+
     @objc func connectToWifiBySsidPrefixAndPassword(_ call: CAPPluginCall) {
         let ssidPrefix: String = call.getString("ssidPrefix", "")
         let _: String? = call.getString("password")
-        
+
         print("CONNECTING", ssidPrefix)
-        
+
         let hotspotConfig = NEHotspotConfiguration(
             ssidPrefix: ssidPrefix
         )
-        
-        hotspotConfig.joinOnce = false
-        
+
+        hotspotConfig.joinOnce = true
+
         NEHotspotConfigurationManager.shared.apply(hotspotConfig) { (error) in
             if let error = error {
                 print("error = ", error)
             } else {
                 print("Success!")
             }
-            
+
             let currentWifi: WifiEntry? = self.getCurrentWifiInfo()
-            
-            
+
+
             call.resolve([
                 "wasSuccess": true,
                 "wifi": self.wifiEntryToWifiDict(wifiEntry: currentWifi) as Any
@@ -110,23 +110,23 @@ public class WifiPlugin: CAPPlugin, CLLocationManagerDelegate {
             passphrase: call.getString("password", ""),
             isWEP: false
         )
-        
+
         NEHotspotConfigurationManager.shared.apply(hotspotConfig) { (error) in
             if let error = error {
                 print("error = ", error)
             } else {
                 print("Success!")
             }
-            
+
             call.resolve(["wasSuccess": true])
         }
     }
 
     @objc func scanWifi(_ call: CAPPluginCall) {
         if let _: NSArray = CNCopySupportedInterfaces() {
-            
+
             let currentWifi: WifiEntry? = getCurrentWifiInfo()
-            
+
             if (currentWifi == nil) {
                 call.resolve([
                     "wifis": [] as Array<String>
@@ -149,7 +149,7 @@ public class WifiPlugin: CAPPlugin, CLLocationManagerDelegate {
 
     @objc func getCurrentWifi(_ call: CAPPluginCall) {
         let wifiEntry: WifiEntry? = getCurrentWifiInfo()
-        
+
         if (wifiEntry == nil) {
             call.resolve(["currentWifi": ""])
         } else {
@@ -157,9 +157,9 @@ public class WifiPlugin: CAPPlugin, CLLocationManagerDelegate {
                 "currentWifi": wifiEntryToWifiDict(wifiEntry: wifiEntry) as Any
             ])
         }
-        
+
     }
-    
+
     func getCurrentWifiInfo() -> WifiEntry? {
         if let interfaces = CNCopySupportedInterfaces() as NSArray? {
             for interface in interfaces {
@@ -175,12 +175,12 @@ public class WifiPlugin: CAPPlugin, CLLocationManagerDelegate {
         }
         return nil
     }
-    
+
     func wifiEntryToWifiDict(wifiEntry: WifiEntry?) -> [String: Any]? {
         if (wifiEntry == nil) {
             return nil
         }
-        
+
         return [
             "bssid": wifiEntry?.bssid ?? "",
             "ssid": wifiEntry?.ssid ?? "[HIDDEN_SSID]",
