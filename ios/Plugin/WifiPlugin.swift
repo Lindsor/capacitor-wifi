@@ -90,6 +90,10 @@ public class WifiPlugin: CAPPlugin, CLLocationManagerDelegate {
         NEHotspotConfigurationManager.shared.apply(hotspotConfig) { (error) in
             if let error = error {
                 print("error = ", error)
+                call.reject([
+                  "errorCode": "MISSING_SSID_CONNECT_WIFI"
+                ] as Any)
+                return
             } else {
                 print("Success!")
             }
