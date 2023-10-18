@@ -27,6 +27,10 @@ public class WifiPlugin: CAPPlugin, CLLocationManagerDelegate {
     public func locationManager(_ manager: CLLocationManager, didChangeAuthorization status: CLAuthorizationStatus) {
         var locationState = "granted"
 
+        if _currentCall == nil {
+            return
+        }
+
         let call: CAPPluginCall = _currentCall! as CAPPluginCall
         _currentCall = nil
 
