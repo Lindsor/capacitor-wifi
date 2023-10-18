@@ -31,11 +31,13 @@ public class WifiEntry {
 
         JSArray capabilitiesArray = new JSArray();
 
-        for (int i = 0; i < this.capabilities.size(); i++) {
-            try {
-                capabilitiesArray.put(i, this.capabilities.get(i));
-            } catch (JSONException e) {
-                throw new RuntimeException(e);
+        if (this.capabilities != null) {
+            for (int i = 0; i < this.capabilities.size(); i++) {
+                try {
+                    capabilitiesArray.put(i, this.capabilities.get(i));
+                } catch (JSONException e) {
+                    throw new RuntimeException(e);
+                }
             }
         }
 

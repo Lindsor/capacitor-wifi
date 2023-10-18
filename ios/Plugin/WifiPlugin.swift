@@ -98,7 +98,6 @@ public class WifiPlugin: CAPPlugin, CLLocationManagerDelegate {
 
             let currentWifi: WifiEntry? = self.getCurrentWifiInfo()
 
-
             call.resolve([
                 "wasSuccess": true,
                 "wifi": self.wifiEntryToWifiDict(wifiEntry: currentWifi) as Any
@@ -129,14 +128,14 @@ public class WifiPlugin: CAPPlugin, CLLocationManagerDelegate {
 
             let currentWifi: WifiEntry? = getCurrentWifiInfo()
 
-            if (currentWifi == nil) {
+            if currentWifi == nil {
                 call.resolve([
-                    "wifis": [] as Array<String>
+                    "wifis": [] as [String]
                 ])
-                return;
+                return
             }
 
-            var wifis: Array<Dictionary<String, Any>> = []
+            var wifis: [[String: Any]] = []
             let currentWifiDictionary: [String: Any] = wifiEntryToWifiDict(wifiEntry: currentWifi)!
             wifis.append(currentWifiDictionary)
             call.resolve([
@@ -152,7 +151,7 @@ public class WifiPlugin: CAPPlugin, CLLocationManagerDelegate {
     @objc func getCurrentWifi(_ call: CAPPluginCall) {
         let wifiEntry: WifiEntry? = getCurrentWifiInfo()
 
-        if (wifiEntry == nil) {
+        if wifiEntry == nil {
             call.resolve(["currentWifi": ""])
         } else {
             call.resolve([
@@ -179,7 +178,7 @@ public class WifiPlugin: CAPPlugin, CLLocationManagerDelegate {
     }
 
     func wifiEntryToWifiDict(wifiEntry: WifiEntry?) -> [String: Any]? {
-        if (wifiEntry == nil) {
+        if wifiEntry == nil {
             return nil
         }
 
@@ -188,7 +187,7 @@ public class WifiPlugin: CAPPlugin, CLLocationManagerDelegate {
             "ssid": wifiEntry?.ssid ?? "[HIDDEN_SSID]",
             "isCurrentWifi": wifiEntry?.isCurrentWify ?? false,
             "level": -1,
-            "capabilities": [String](),
+            "capabilities": [String]()
         ] as [String: Any]
     }
 }

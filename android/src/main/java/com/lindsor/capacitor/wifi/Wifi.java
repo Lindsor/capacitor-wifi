@@ -17,7 +17,6 @@ import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.net.wifi.WifiNetworkSpecifier;
 import android.os.Build;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
@@ -57,55 +56,55 @@ public class Wifi {
             .build();
 
         if (this.connectivityCallback != null) {
-          this.connectivityManager.unregisterNetworkCallback(this.connectivityCallback);
+            this.connectivityManager.unregisterNetworkCallback(this.connectivityCallback);
         }
-        this.connectivityCallback = new ConnectivityManager.NetworkCallback() {
-            @Override
-            public void onAvailable(@NonNull Network network) {
-                super.onAvailable(network);
-                // To make sure that requests don't go over mobile data
-                connectivityManager.bindProcessToNetwork(network);
+        this.connectivityCallback =
+            new ConnectivityManager.NetworkCallback() {
+                @Override
+                public void onAvailable(@NonNull Network network) {
+                    super.onAvailable(network);
+                    // To make sure that requests don't go over mobile data
+                    connectivityManager.bindProcessToNetwork(network);
 
-                getWifiBySsid(
-                    ssid,
-                    new GetWifiCallback() {
-                        @Override
-                        public void onSuccess(@Nullable WifiEntry wifiEntry) {
-                            connectedCallback.onConnected(wifiEntry);
+                    getWifiBySsid(
+                        ssid,
+                        new GetWifiCallback() {
+                            @Override
+                            public void onSuccess(@Nullable WifiEntry wifiEntry) {
+                                connectedCallback.onConnected(wifiEntry);
+                            }
+
+                            @Override
+                            public void onError(WifiError error) {
+                                connectedCallback.onConnected(null);
+                            }
                         }
+                    );
+                }
 
-                        @Override
-                        public void onError(WifiError error) {
-                            connectedCallback.onConnected(null);
-                        }
-                    }
-                );
-            }
+                @Override
+                public void onUnavailable() {
+                    super.onUnavailable();
 
-            @Override
-            public void onUnavailable() {
-                super.onUnavailable();
-
-                WifiError error = new WifiError(WifiErrorCode.FAILED_TO_ENABLE_NETWORK);
-                connectedCallback.onError(error);
-            }
-        };
+                    WifiError error = new WifiError(WifiErrorCode.FAILED_TO_ENABLE_NETWORK);
+                    connectedCallback.onError(error);
+                }
+            };
 
         this.connectivityManager.requestNetwork(networkRequest, this.connectivityCallback);
     }
 
     public void disconnectAndForget() {
+        this.ensureWifiManager();
 
-      this.ensureWifiManager();
+        if (this.connectivityCallback != null) {
+            this.connectivityManager.unregisterNetworkCallback(this.connectivityCallback);
+            this.connectivityCallback = null;
+        }
 
-      if (this.connectivityCallback != null) {
-        this.connectivityManager.unregisterNetworkCallback(this.connectivityCallback);
-        this.connectivityCallback = null;
-      }
-
-      if (this.connectivityManager != null) {
-        this.connectivityManager.bindProcessToNetwork(null);
-      }
+        if (this.connectivityManager != null) {
+            this.connectivityManager.bindProcessToNetwork(null);
+        }
     }
 
     public void connectToWifiBySsidPrefix(String ssidPrefix, @Nullable String password, ConnectToWifiCallback connectedCallback) {
