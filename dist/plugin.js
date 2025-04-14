@@ -27,7 +27,7 @@ var capacitorWifi = (function (exports, core) {
     })(exports.WifiErrorCode || (exports.WifiErrorCode = {}));
 
     const Wifi = core.registerPlugin('Wifi', {
-        web: () => Promise.resolve().then(function () { return web; }).then(m => new m.WifiWeb()),
+        web: () => Promise.resolve().then(function () { return web; }).then((m) => new m.WifiWeb()),
     });
 
     class WifiWeb extends core.WebPlugin {
@@ -60,8 +60,6 @@ var capacitorWifi = (function (exports, core) {
     });
 
     exports.Wifi = Wifi;
-
-    Object.defineProperty(exports, '__esModule', { value: true });
 
     return exports;
 

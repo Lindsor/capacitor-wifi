@@ -58,38 +58,37 @@ public class Wifi {
         if (this.connectivityCallback != null) {
             this.connectivityManager.unregisterNetworkCallback(this.connectivityCallback);
         }
-        this.connectivityCallback =
-            new ConnectivityManager.NetworkCallback() {
-                @Override
-                public void onAvailable(@NonNull Network network) {
-                    super.onAvailable(network);
-                    // To make sure that requests don't go over mobile data
-                    connectivityManager.bindProcessToNetwork(network);
+        this.connectivityCallback = new ConnectivityManager.NetworkCallback() {
+            @Override
+            public void onAvailable(@NonNull Network network) {
+                super.onAvailable(network);
+                // To make sure that requests don't go over mobile data
+                connectivityManager.bindProcessToNetwork(network);
 
-                    getWifiBySsid(
-                        ssid,
-                        new GetWifiCallback() {
-                            @Override
-                            public void onSuccess(@Nullable WifiEntry wifiEntry) {
-                                connectedCallback.onConnected(wifiEntry);
-                            }
-
-                            @Override
-                            public void onError(WifiError error) {
-                                connectedCallback.onConnected(null);
-                            }
+                getWifiBySsid(
+                    ssid,
+                    new GetWifiCallback() {
+                        @Override
+                        public void onSuccess(@Nullable WifiEntry wifiEntry) {
+                            connectedCallback.onConnected(wifiEntry);
                         }
-                    );
-                }
 
-                @Override
-                public void onUnavailable() {
-                    super.onUnavailable();
+                        @Override
+                        public void onError(WifiError error) {
+                            connectedCallback.onConnected(null);
+                        }
+                    }
+                );
+            }
 
-                    WifiError error = new WifiError(WifiErrorCode.FAILED_TO_ENABLE_NETWORK);
-                    connectedCallback.onError(error);
-                }
-            };
+            @Override
+            public void onUnavailable() {
+                super.onUnavailable();
+
+                WifiError error = new WifiError(WifiErrorCode.FAILED_TO_ENABLE_NETWORK);
+                connectedCallback.onError(error);
+            }
+        };
 
         this.connectivityManager.requestNetwork(networkRequest, this.connectivityCallback);
     }

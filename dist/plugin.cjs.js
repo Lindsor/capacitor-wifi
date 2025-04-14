@@ -1,7 +1,5 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 var core = require('@capacitor/core');
 
 exports.WifiCapability = void 0;
@@ -30,7 +28,7 @@ exports.WifiErrorCode = void 0;
 })(exports.WifiErrorCode || (exports.WifiErrorCode = {}));
 
 const Wifi = core.registerPlugin('Wifi', {
-    web: () => Promise.resolve().then(function () { return web; }).then(m => new m.WifiWeb()),
+    web: () => Promise.resolve().then(function () { return web; }).then((m) => new m.WifiWeb()),
 });
 
 class WifiWeb extends core.WebPlugin {

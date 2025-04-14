@@ -67,9 +67,7 @@ export interface PermissionStatus {
 export interface WifiPlugin {
   scanWifi(): Promise<ScanWifiResult>;
   getCurrentWifi(): Promise<GetCurrentWifiResult>;
-  connectToWifiBySsidAndPassword(
-    connectToWifiRequest: ConnectToWifiRequest,
-  ): Promise<ConnectToWifiResult>;
+  connectToWifiBySsidAndPassword(connectToWifiRequest: ConnectToWifiRequest): Promise<ConnectToWifiResult>;
   connectToWifiBySsidPrefixAndPassword(
     connectToWifiPrefixRequest: ConnectToWifiPrefixRequest,
   ): Promise<ConnectToWifiResult>;
