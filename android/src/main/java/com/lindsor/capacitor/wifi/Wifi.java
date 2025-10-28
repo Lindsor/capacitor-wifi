@@ -168,12 +168,14 @@ public class Wifi {
 
                 if (!isSuccess) {
                     callback.onSuccess(getWifiScanCachedResults());
+                    context.unregisterReceiver(this);
                     return;
                 }
 
                 ArrayList<WifiEntry> wifis = getWifiScanCachedResults();
 
                 callback.onSuccess(wifis);
+                context.unregisterReceiver(this);
             }
         };
 
@@ -186,6 +188,7 @@ public class Wifi {
         }
 
         callback.onSuccess(this.getWifiScanCachedResults());
+        this.context.unregisterReceiver(wifiScanReceiver);
     }
 
     public void getCurrentWifi(GetWifiCallback callback) {
