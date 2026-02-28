@@ -279,6 +279,7 @@ public class Wifi {
 
             wifiObject.bssid = scanResult.BSSID;
             wifiObject.level = scanResult.level;
+            wifiObject.frequency = scanResult.frequency;
             wifiObject.ssid = getScanResultSsid(scanResult);
             wifiObject.capabilities = getScanResultCapabilities(scanResult);
             wifiObject.isCurrentWifi = wifiObject.bssid.equals(currentWifiBssid);
